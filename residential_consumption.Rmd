@@ -376,12 +376,12 @@ Retrieved Nov. 26, 2019.
 EIA 2019. _Retail Sales of Electricity by State by Sector by Provider_,
 U.S. Energy Information Agency.
 <https://www.eia.gov/electricity/data/state/> and 
-`r str_c('<', sales_url, '>') %>% cat()`.
+`r str_c('<', sales_url, '>')`.
 Retrieved Nov. 26, 2019.
 
 EPA 2018. _Emissions & Generation Resource Integrated Database (eGRID 2016)_, 
 U.S. Environmental Protection Agency.
 <https://www.epa.gov/energy/emissions-generation-resource-integrated-database-egrid>,
 Summary tables:
-`r str_c('<', emission_url, '>') %>% cat()`.
+`r str_c('<', emission_url, '>')`.
 Retrieved Nov. 26, 2019.

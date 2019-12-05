@@ -116,7 +116,7 @@ renew_factor <- renewables %>% select(namepcap, plngenan) %>%
   na.omit() %>% summarize_all(sum) %>%
   mutate(cap_factor = plngenan / (24 * 366 * namepcap))
 
-# emissions is given in short tones, so divide by 1.1 to get metric tons.
+# emissions is given in short tons, so divide by 1.1 to get metric tons.
 natgas_factor <- natgas %>% select(namepcap, plngenan, plco2eqa) %>%
   na.omit() %>% summarize_all(sum) %>%
   mutate(cap_factor = plngenan / (24 * 366 * namepcap),
@@ -133,6 +133,6 @@ EPA 2018. _Emissions & Generation Resource Integrated Database (eGRID 2016)_,
 U.S. Environmental Protection Agency.
 <https://www.epa.gov/energy/emissions-generation-resource-integrated-database-egrid>,
 eGRID 2016 Data file:
-`r str_c('<', egrid_url, '>') %>% cat()`.
+`r str_c('<', egrid_url, '>')`.
 Retrieved Nov. 26, 2019.
 
