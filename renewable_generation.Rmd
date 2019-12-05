@@ -1,0 +1,138 @@
+---
+title: "Emission Reduction from Renewable Energy in Virginia and North Carolina"
+author: "Jonathan M. Gilligan"
+date: "12/4/2019"
+output: 
+  pdf_document: default
+---
+
+```{r knitr, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+```
+```{r setup, echo=FALSE, eval=TRUE, include=FALSE, message=FALSE, warning=FALSE}
+```
+```{r dl_egrid_data, echo=FALSE, eval=TRUE, include=FALSE, message=FALSE, warning=FALSE}
+```
+```{r load_data, echo=FALSE, eval=TRUE, include=FALSE, message=FALSE, warning=FALSE}
+```
+```{r emissions_factor, echo=FALSE, eval=TRUE, include=FALSE, message=FALSE, warning=FALSE}
+```
+# Introduction
+
+High tech companies have stimulated the adoption of 750 MW nameplate capacity of new renewable electricity
+generation capacity in North Carolina and Virginia. I estimate the reduction in annual greenhouse gas 
+emissions from using renewables instead of building an equivalent amount of natural gas generation.
+
+The result of my calculations is a reduction of annual emissions by `r scales::comma(gas_emissions, accuracy = 1000)` metric 
+tons of CO~2~e
+
+# Methods
+
+```{r setup, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(pacman)
+p_load(tidyverse, magrittr, lubridate, readxl, broom, janitor)
+
+data_dir = here::here("data")
+```
+
+First, we download the data file from EPA (2018) with generation, capacity
+factors, and emissions factors for each generating plant in each state.
+
+```{r dl_egrid_data, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+egrid_file <- file.path(data_dir, "egrid2016_data.xlsx")
+egrid_url <- "https://www.epa.gov/sites/production/files/2018-02/egrid2016_data.xlsx"
+if (! file.exists(egrid_file)) download.file(egrid_url, egrid_file, mode = "wb")
+```
+
+Since almost all new fossil fuel generation capacity is natural
+gas, assume that if the renewable generating capacity were not installed, an
+equivalent amount of natural gas capacity would have to be added to supply the
+data centers.
+
+For our analysis, we break out the renewable and natural gas plants in Virginia
+and North Carolina.
+
+The table columns we use are:
+* `pstatabb`: Two-letter state abbreviation.
+* `plfuelct`: Fuel category (`SOLAR`, `WIND`, or `GAS` for our cases).
+* `capfact`: Capacity factor for that generating plant
+* `namepcap`: Nameplate generating capacity (MW) for that plant.
+* `plngenan`: Annual generation for that plant (MWh).
+* `plco2eqa`: Annual GHG emissions for the plant (short tons CO~2~e).
+* `plc2erta`: Annual GHG emissions rate for the plant (pound CO~2~e per MWh).
+
+```{r load_data, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+egrid <- read_excel(egrid_file, "PLNT16",
+                    skip = 1, na = c("", "NA", "N/A", "na", "n/a")) %>%
+  clean_names()
+
+renewables <- egrid %>%
+  filter(pstatabb %in% c("NC", "VA"), plfuelct %in% c("SOLAR", "WIND")) %>%
+  select(pstatabb, plfuelct, capfac, namepcap, plngenan, plco2eqa, plc2erta)
+
+natgas <- egrid %>%
+  filter(pstatabb %in% c("NC", "VA"), plfuelct %in% c("GAS")) %>%
+  select(pstatabb, plfuelct, capfac, namepcap, plngenan, plco2eqa, plc2erta)
+```
+
+Now we calculate the equivalent amount of natural gas that would have to be
+installed to replace renewables with a nameplate capacity of 750 MW.
+We calculate the average capacity factor for each type of electricity
+(the eGRID 2016 numbers apply to 2016, which was a leap year, so we use 
+366 days for the length of the year).
+
+The capacity factor is calculated as
+$$ 
+\text{capacity factor} = \frac{\sum_{p \in \text{plants}} \text{annual generation (MWh)}}{ \text{hours in a year} \times \sum_{p \in \text{plants}} \text{nameplate capacity (MW)}}.
+$$
+The capacity factors are:
+
+* Renwwables `r scales::percent(renew_factor$cap_factor, accuracy = 0.1)`
+* Natural gas: `r scales::percent(natgas_factor$cap_factor, accuracy = 0.1)`
+
+The emissions factor is calculated as
+$$
+\text{emissions factor} = \frac{\sum_{p \in \text{plant}} \text{annual GHG emissions (tons)}}{\sum_{p \in \text{plant}} \text{annual generation (MWh)}},
+$$
+which gives an emissions factor for natural gas of `r scales::comma(natgas_factor$e_factor, accuracy = 0.001)` metric tons CO~2~e/MWh.
+
+The generating capacity of natural gas that would be required to substitute for 750 MW nameplate capacity of renewables would be
+$$
+\text{cap}_{\text{gas}} = \text{cap}_{\text{renweables}} \times \frac{\text{cap factor}_{\text{renewables}}}{\text{cap factor}_{\text{gas}}}
+$$
+and the annual GHG emissions that would result would be 
+$$
+\begin{aligned}
+\text{emissions} &= \text{emissions factor}_{\text{gas}} \times \text{cap}_{\text{gas}} \times \text{hours per year}\\
+                 &= \text{emissions factor}_{\text{gas}} \times \text{cap}_{\text{renweables}} \times \frac{\text{cap factor}_{\text{renewables}}}{\text{cap factor}_{\text{gas}}} \times \text{hours per year}
+\end{aligned}
+$$
+
+The results of the
+
+```{r emissions_factor, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+# 2016 is a leap year: use 366 day year.
+renew_factor <- renewables %>% select(namepcap, plngenan) %>%
+  na.omit() %>% summarize_all(sum) %>%
+  mutate(cap_factor = plngenan / (24 * 366 * namepcap))
+
+# emissions is given in short tones, so divide by 1.1 to get metric tons.
+natgas_factor <- natgas %>% select(namepcap, plngenan, plco2eqa) %>%
+  na.omit() %>% summarize_all(sum) %>%
+  mutate(cap_factor = plngenan / (24 * 366 * namepcap),
+         e_factor = plco2eqa / plngenan / 1.1)
+
+# Metric tons CO2e
+gas_emissions <- 750 * 24 * 365 * renew_factor$cap_factor * natgas_factor$e_factor
+
+```
+
+# References 
+
+EPA 2018. _Emissions & Generation Resource Integrated Database (eGRID 2016)_, 
+U.S. Environmental Protection Agency.
+<https://www.epa.gov/energy/emissions-generation-resource-integrated-database-egrid>,
+eGRID 2016 Data file:
+`r str_c('<', egrid_url, '>') %>% cat()`.
+Retrieved Nov. 26, 2019.
+
