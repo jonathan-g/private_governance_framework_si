@@ -56,10 +56,10 @@ line to 2018 as a quasi-business-as-usual counterfactual without the growth
 of efficient lightbulb use. The pre-2007 data fits the line very nicely so 
 the extrapolation seems reasonable.
 
-Finally, I follow Davis (2017) in fitting a quadratic function to the 
+Finally, I follow Davis (2017) in fitting a cubic polynomial to the 
 full data set to represent the actual trend (Fig. 1)
 
-```{r davis_plot, echo=FALSE, eval=TRUE, include=TRUE, fig.cap='Analysis of per-capita electricity consumption in the U.S., following Davis (2017). The linear extrapolation is fit to the data from 1990--2006 and the quadratic approximation is fit to the full set of observations. The linear extrapolation reflects a counterfactual "business as usual" scenario that follows the trend through the last year before Walmart began its major effort to promote energy-efficient light bulbs.', fig.pos="tp"}
+```{r davis_plot, echo=FALSE, eval=TRUE, include=TRUE, fig.cap='Analysis of per-capita electricity consumption in the U.S., following Davis (2017). The linear extrapolation is fit to the data from 1990--2006 and the cubic polynomial approximation is fit to the full set of observations. The linear extrapolation reflects a counterfactual "business as usual" scenario that follows the trend through the last year before Walmart began its major effort to promote energy-efficient light bulbs.', fig.pos="tp"}
 line_levels <- levels(fits$Fit)
 
 line_values <- set_names(c("dashed", "solid"), line_levels)
@@ -92,7 +92,7 @@ plot(p)
 Next, I repeat the regression analysis for each state, individually
 and calculate the difference in state-wide residential electricity 
 sales (in MWh per year) for 2018 as estimated both by the 
-counterfactual linear estrapolation and by the quadratic estimate of
+counterfactual linear extrapolation and by the cubic polynomial estimate of
 the actual trend for that state. 
 Then I multiply this difference (reduction of use, in MWh per year)
 by that state's emissions factors, as reported by the EPA's eGRID 2016
@@ -308,7 +308,7 @@ Analyze the data using two methods:
    light bulbs in a single year and thus, this marks the beginning of the 
    concerted private-sector initiative to put efficient light bulbs into 
    America's homes.
-2. Fit a quadratic function to the full data set. This follows Davis's 
+2. Fit a cubic polynomial to the full data set. This follows Davis's 
    (2017) analysis.
 
 ```{r regressions, echo=TRUE, eval=FALSE}
@@ -316,14 +316,14 @@ fits <- us_total %>%
   mutate(early = lm(per_capita_use ~ year, data = .,
                     subset = year < 2007) %>%
            augment(newdata = tibble(year = year)) %$% .fitted,
-         full = lm(per_capita_use ~ poly(year, 2), data = .) %>%
+         full = lm(per_capita_use ~ poly(year, 3), data = .) %>%
            augment(newdata = tibble(year = year)) %$% .fitted) %>%
   select(year, early, full) %>%
   pivot_longer(cols=-year, names_to = "key", 
                values_to = "per_capita_use") %>%
   mutate(Fit = factor(key, levels = c("early", "full"),
                       labels = c("Linear extrapolation from pre-2007 data",
-                                 "Quadratic fit to all data")))
+                                 "Cubic polynomial fit to all data")))
 ```
 
 Now, calculate the reduction in emissions for the US:
@@ -351,7 +351,7 @@ emissions_change <- per_capita_use %>% filter(state != "US") %>%
   group_by(state, sector) %>%
   mutate(early = lm(per_capita_use ~ year, data = ., subset = year < 2007) %>%
            augment(newdata = tibble(year = year)) %$% .fitted,
-         full = lm(per_capita_use ~ poly(year, 2), data = .) %>%
+         full = lm(per_capita_use ~ poly(year, 3), data = .) %>%
            augment(newdata = tibble(year = year)) %$% .fitted,
          delta = early - full,
          delta_total = pop * delta) %>%
