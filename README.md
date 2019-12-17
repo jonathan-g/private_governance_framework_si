@@ -4,8 +4,8 @@
 # Supporting Material for Gilligan & Vandenbergh 2019.
 
 Calculations to support J.M. Gilligan and M.P. Vandenbergh, 
-"A Framework for Assessing the Impact of Private Governance"
-(a working paper).
+"A Framework for Assessing the Impact of Private Governance,"
+Energy Research and Social Science (in press).
 
 The calculations are documented in `renewable_generation.pdf` and 
 `residential_consumption.pdf`.
