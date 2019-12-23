@@ -1,6 +1,0 @@
-* text=auto !filter !merge !diff
-*.pdf -text
-*.png -text
-*.xls* -text
-*.Rds -text
-
