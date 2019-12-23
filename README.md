@@ -7,8 +7,10 @@ Calculations to support J.M. Gilligan and M.P. Vandenbergh,
 "A Framework for Assessing the Impact of Private Governance,"
 Energy Research and Social Science (in press).
 
-The calculations are documented in `renewable_generation.pdf` and 
-`residential_consumption.pdf`.
+The calculations are documented in 
+[`renewable_generation.pdf`](https://github.com/jonathan-g/private_governance_framework_si/blob/master/renewable_generation.pdf) 
+and 
+[`residential_consumption.pdf`](https://github.com/jonathan-g/private_governance_framework_si/blob/master/residential_consumption.pdf).
 
 The data (downloaded from the U.S. Environmental Protection Agency, the U.S.
 Energy Information Administration, and the US Census Bureau), can be found in the 
@@ -19,6 +21,6 @@ and rendering them using the [`rmarkdown`](https://rmarkdown.rstudio.com/)
 package will reproduce the `.pdf` output.
 
 When you rebuild the files, you should have the 
-[`pacman`](https://github.com/trinker/pacman) R package installed.
+[`pacman`](https://cran.r-project.org/web/packages/pacman/index.html) R package installed.
 This package will take care of automatically installing any other missing 
 R pacakges when the documents are compiled.
