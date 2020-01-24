@@ -53,6 +53,7 @@ For our analysis, we break out the renewable and natural gas plants in Virginia
 and North Carolina.
 
 The table columns we use are:
+
 * `pstatabb`: Two-letter state abbreviation.
 * `plfuelct`: Fuel category (`SOLAR`, `WIND`, or `GAS` for our cases).
 * `capfact`: Capacity factor for that generating plant
